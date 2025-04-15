@@ -123,9 +123,12 @@ const Upload = () => {
       console.log(`Creating ${connections.length} connections from ${contacts.length} contacts`);
       
       // Batch insert connections
+      console.log(`Preparing to upsert ${connections.length} connections for ${savedProfiles.length} profiles`);
       const savedConnections = await batchInsertConnections(connections);
       
       setUploadProgress(80);
+      
+      console.log(`Successfully upserted ${savedConnections.length} connections out of ${connections.length} attempted`);
       
       // Log the upload
       await logUpload(user.id, savedProfiles.length, savedConnections.length);

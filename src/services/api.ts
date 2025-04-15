@@ -58,7 +58,7 @@ export const upsertProfiles = async (profiles: Profile[]): Promise<Profile[]> =>
 };
 
 /**
- * Create a connection between a user and a profile
+ * Create or update a connection between a user and a profile
  */
 export const createConnection = async (
   userId: string,
@@ -67,16 +67,19 @@ export const createConnection = async (
 ): Promise<Connection | null> => {
   const { data, error } = await supabase
     .from('connections')
-    .insert({
+    .upsert({
       user_id: userId,
       profile_id: profileId,
       connected_on: connectedOn,
+    }, {
+      onConflict: 'user_id,profile_id',
+      ignoreDuplicates: false,
     })
     .select()
     .single();
   
   if (error) {
-    console.error('Error creating connection:', error);
+    console.error('Error creating/updating connection:', error);
     return null;
   }
   
@@ -84,20 +87,28 @@ export const createConnection = async (
 };
 
 /**
- * Batch insert connections
+ * Batch insert or update connections
  */
 export const batchInsertConnections = async (
   connections: { user_id: string; profile_id: string; connected_on: string }[]
 ): Promise<Connection[]> => {
+  console.log(`Attempting to upsert ${connections.length} connections`);
+  
+  // Use upsert instead of insert to handle existing connections
   const { data, error } = await supabase
     .from('connections')
-    .insert(connections)
+    .upsert(connections, {
+      onConflict: 'user_id,profile_id', // Match the unique constraint in the database
+      ignoreDuplicates: false, // Update existing records
+    })
     .select();
   
   if (error) {
-    console.error('Error batch inserting connections:', error);
+    console.error('Error batch upserting connections:', error);
     return [];
   }
+  
+  console.log(`Successfully upserted ${data?.length || 0} connections`);
   
   return data || [];
 };
