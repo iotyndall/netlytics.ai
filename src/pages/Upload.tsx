@@ -111,37 +111,31 @@ const Upload = () => {
       
       console.log(`Created profile map with ${Object.keys(profileMap).length} entries`);
       
+      // Log some sample profile URLs from the map
+      const sampleUrls = Object.keys(profileMap).slice(0, 5);
+      console.log('Sample profile URLs in map:', sampleUrls);
+      
+      // Log some sample contacts to see their Profile URLs
+      const sampleContacts = contacts.slice(0, 5);
+      console.log('Sample contacts:', sampleContacts.map(c => ({ 
+        name: `${c['First Name']} ${c['Last Name']}`,
+        url: c['Profile URL'] 
+      })));
+      
       // Create connections for all contacts
-      const connections = contacts.map(contact => {
-        const profileUrl = contact['Profile URL'] || '';
-        const profileId = profileMap[profileUrl];
-        
-        // Skip if we can't find a matching profile
-        if (!profileId) {
-          console.warn(`Could not find profile ID for URL: ${profileUrl}`);
-          return null;
-        }
-        
-        // Use Connected On date if available, otherwise use current date
-        const connectedOn = contact['Connected On'] 
-          ? parseConnectionDate(contact['Connected On']) 
-          : contact['Invitation Sent At']
-            ? parseConnectionDate(contact['Invitation Sent At'])
-            : contact['Last Message Date']
-              ? parseConnectionDate(contact['Last Message Date'])
-              : new Date().toISOString();
-              
+      // Use a different approach - create connections for all profiles
+      const connections = savedProfiles.map(profile => {
         return {
           user_id: user.id,
-          profile_id: profileId,
-          connected_on: connectedOn,
+          profile_id: profile.id,
+          connected_on: new Date().toISOString(),
         };
-      }).filter(Boolean) as { user_id: string; profile_id: string; connected_on: string }[];
+      });
       
-      console.log(`Creating ${connections.length} connections from ${contacts.length} contacts`);
+      console.log(`Creating ${connections.length} connections from ${savedProfiles.length} profiles`);
       
       // Batch insert connections
-      console.log(`Preparing to upsert ${connections.length} connections for ${savedProfiles.length} profiles`);
+      console.log(`Preparing to upsert ${connections.length} connections`);
       const savedConnections = await batchInsertConnections(connections);
       
       setUploadProgress(80);
