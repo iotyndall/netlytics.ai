@@ -101,9 +101,27 @@ const Upload = () => {
         throw new Error('Failed to save profiles');
       }
       
-      // Create connections
-      const connections = savedProfiles.map((profile, index) => {
-        const contact = contacts[index];
+      // Create a map of LinkedIn URLs to profile IDs for easier lookup
+      const profileMap: Record<string, string> = {};
+      savedProfiles.forEach(profile => {
+        if (profile.linkedin_url) {
+          profileMap[profile.linkedin_url] = profile.id;
+        }
+      });
+      
+      console.log(`Created profile map with ${Object.keys(profileMap).length} entries`);
+      
+      // Create connections for all contacts
+      const connections = contacts.map(contact => {
+        const profileUrl = contact['Profile URL'] || '';
+        const profileId = profileMap[profileUrl];
+        
+        // Skip if we can't find a matching profile
+        if (!profileId) {
+          console.warn(`Could not find profile ID for URL: ${profileUrl}`);
+          return null;
+        }
+        
         // Use Connected On date if available, otherwise use current date
         const connectedOn = contact['Connected On'] 
           ? parseConnectionDate(contact['Connected On']) 
@@ -115,10 +133,10 @@ const Upload = () => {
               
         return {
           user_id: user.id,
-          profile_id: profile.id,
+          profile_id: profileId,
           connected_on: connectedOn,
         };
-      });
+      }).filter(Boolean) as { user_id: string; profile_id: string; connected_on: string }[];
       
       console.log(`Creating ${connections.length} connections from ${contacts.length} contacts`);
       
