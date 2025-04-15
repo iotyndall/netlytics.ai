@@ -101,29 +101,7 @@ const Upload = () => {
         throw new Error('Failed to save profiles');
       }
       
-      // Create a map of LinkedIn URLs to profile IDs for easier lookup
-      const profileMap: Record<string, string> = {};
-      savedProfiles.forEach(profile => {
-        if (profile.linkedin_url) {
-          profileMap[profile.linkedin_url] = profile.id;
-        }
-      });
-      
-      console.log(`Created profile map with ${Object.keys(profileMap).length} entries`);
-      
-      // Log some sample profile URLs from the map
-      const sampleUrls = Object.keys(profileMap).slice(0, 5);
-      console.log('Sample profile URLs in map:', sampleUrls);
-      
-      // Log some sample contacts to see their Profile URLs
-      const sampleContacts = contacts.slice(0, 5);
-      console.log('Sample contacts:', sampleContacts.map(c => ({ 
-        name: `${c['First Name']} ${c['Last Name']}`,
-        url: c['Profile URL'] 
-      })));
-      
-      // Create connections for all contacts
-      // Use a different approach - create connections for all profiles
+      // Create connections for all profiles
       const connections = savedProfiles.map(profile => {
         return {
           user_id: user.id,
@@ -149,10 +127,11 @@ const Upload = () => {
       
       // Navigate to connections page
       setTimeout(() => {
-        navigate('/connections');
+        navigate('/dashboard');
       }, 1000);
     } catch (err) {
       setError((err as Error).message);
+      setIsUploading(false);
     } finally {
       setIsUploading(false);
     }
