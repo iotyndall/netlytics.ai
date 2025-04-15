@@ -57,6 +57,24 @@ export interface LinkedInContact {
   'Position'?: string;
   'Connected On'?: string;
   'Profile URL'?: string;
+  // Additional fields from Contacts.csv
+  'Emails'?: string[];
+  'Phone Numbers'?: string[];
+  // Additional fields from PhoneNumbers.csv
+  'Phone Number'?: string;
+  'Phone Type'?: string;
+  // Additional fields from Whatsapp Phone Numbers.csv
+  'WhatsApp Number'?: string;
+  'Is WhatsApp Number'?: boolean;
+  // Additional fields from Invitations.csv
+  'Invitation Status'?: 'OUTGOING' | 'INCOMING' | string;
+  'Invitation Sent At'?: string;
+  'Invitation Message'?: string;
+  // Additional fields from messages.csv
+  'Last Message Date'?: string;
+  'Last Message Content'?: string;
+  // Source tracking
+  'Source'?: 'connection' | 'contact' | 'invitation' | 'message' | string;
 }
 
 // Dashboard stats
