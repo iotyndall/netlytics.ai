@@ -104,12 +104,23 @@ const Upload = () => {
       // Create connections
       const connections = savedProfiles.map((profile, index) => {
         const contact = contacts[index];
+        // Use Connected On date if available, otherwise use current date
+        const connectedOn = contact['Connected On'] 
+          ? parseConnectionDate(contact['Connected On']) 
+          : contact['Invitation Sent At']
+            ? parseConnectionDate(contact['Invitation Sent At'])
+            : contact['Last Message Date']
+              ? parseConnectionDate(contact['Last Message Date'])
+              : new Date().toISOString();
+              
         return {
           user_id: user.id,
           profile_id: profile.id,
-          connected_on: parseConnectionDate(contact['Connected On']),
+          connected_on: connectedOn,
         };
       });
+      
+      console.log(`Creating ${connections.length} connections from ${contacts.length} contacts`);
       
       // Batch insert connections
       const savedConnections = await batchInsertConnections(connections);

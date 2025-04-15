@@ -528,12 +528,46 @@ export const normalizeProfile = (profile: Profile): Profile => {
 export const parseConnectionDate = (dateStr?: string): string => {
   if (!dateStr) return new Date().toISOString();
   
-  // LinkedIn format is typically MM/DD/YYYY
-  const parts = dateStr.split('/');
-  if (parts.length === 3) {
-    const [month, day, year] = parts;
-    return new Date(`${year}-${month}-${day}`).toISOString();
+  try {
+    // LinkedIn format is typically MM/DD/YYYY
+    if (dateStr.includes('/')) {
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+        const [month, day, year] = parts;
+        return new Date(`${year}-${month}-${day}`).toISOString();
+      }
+    }
+    
+    // Handle "DD MMM YYYY" format (e.g., "06 Apr 2025")
+    if (dateStr.match(/\d{1,2}\s[A-Za-z]{3}\s\d{4}/)) {
+      return new Date(dateStr).toISOString();
+    }
+    
+    // Handle ISO format (e.g., "2025-04-06T13:41:37 UTC")
+    if (dateStr.includes('-') && dateStr.includes(':')) {
+      return new Date(dateStr).toISOString();
+    }
+    
+    // Handle "MM/DD/YY HH:MM AM/PM" format (e.g., "4/6/25 8:35 AM")
+    if (dateStr.match(/\d{1,2}\/\d{1,2}\/\d{2}\s\d{1,2}:\d{2}\s[AP]M/)) {
+      // Convert 2-digit year to 4-digit year
+      const match = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{2})\s(.*)/);
+      if (match) {
+        const [_, month, day, shortYear, timeStr] = match;
+        const year = `20${shortYear}`; // Assume 20xx for 2-digit years
+        return new Date(`${year}-${month}-${day} ${timeStr}`).toISOString();
+      }
+    }
+    
+    // Try to parse as a date directly
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+      return date.toISOString();
+    }
+  } catch (error) {
+    console.warn(`Failed to parse date: ${dateStr}`, error);
   }
   
+  // Default to current date if parsing fails
   return new Date().toISOString();
 };
